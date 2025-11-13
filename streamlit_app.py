@@ -296,8 +296,21 @@ with tab4:
         df = st.session_state.results
         
         # Get top 5
-        top5 = df.nsmallest(5, "Distance_miles") if "Distance_miles" in df.columns else df.head(5)
-        
+        if "Distance_miles" in df.columns:
+            # Step 1: Coerce to numeric
+            df["Distance_miles"] = pd.to_numeric(df["Distance_miles"], errors="coerce")
+
+            # Step 2: Keep only numeric distances
+            numeric_df = df[df["Distance_miles"].notna()].copy()
+
+            # Step 3: If all distances are invalid, fallback to head()
+            if len(numeric_df) >= 5:
+                top5 = numeric_df.nsmallest(5, "Distance_miles")
+            else:
+                top5 = df.head(5)
+        else:
+            top5 = df.head(5)
+
         st.subheader("🏆 Top 5 Communities")
         
         for idx, row in top5.iterrows():
